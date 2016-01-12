@@ -1,0 +1,27 @@
+language: node_js
+node_js:
+- '5'
+services:
+- mongodb
+env:
+- CXX=g++-4.8
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
+  code_climate:
+    repo_token: 53f99e6ae1560f1b5427674496b9feccdd8a511ce6d75eb4a5741f423a56034a
+before_script:
+- npm install -g codeclimate-test-reporter
+after_script:
+- codeclimate-test-reporter < coverage/lcov.info
+deploy:
+  provider: npm
+  email: serveradmin@octoblu.com
+  api_key:
+    secure: YQ+nsFjuKTS7LzXqOZAaIJDSR2J9yPb6NNUlxt8iDJJRXXdwkpzwgS4SYCAz7bs3Wvplaq5KRzBq2fMdEzn634QoouEUMkvN4B7y/xNCOTLLafdcCf5FIjkKrxAyEogMzyG+PAAAnybcRtZUleT7jjAa8X53IL8BkaZE624dVEBLeV9+UDteO+g7lh9uH4XKxM/j9eub0MlwsMozq0pfMMOFcYmIspz/u9SVvTGJ7h/IKbsH3IvdOVQ+mECbRaZhx9ZOgKOhiX6I7I08YV2eaJDBXux7CBCADdZManrkMfVeBWD2L5H5XhOOaoKu4kv20g+wkffuPmreO/mL/lZDwIDD8spevLwe11G2KvDgy50ySXJ2DyfTa1s3mQMKJQ5/GskFtpvRjQD26C8fnVW5LHnRQ8p/pjRV6ZY/VI4+oAyapuQxUpliHdeceaza9EYHmOgfnIBu5izG9Gqep46C1IP9VUt6wMjGlH7svpm9j8FS2QgMdKhMcQdYSjJtZSK4Mls7fXRgnCjpc6IAs6XQMUAG/PIWxkPLTUckSI1pCVFz6hyYRAKHFIYB7DVWTEA0H0gj5CEqqbTIndpqC0CgbT3S09OHBFLwK38xRg2NkJZatz+zPJnlzGZ9nGf0qFs+eWCb1wrYFUMbixsmZxsySuuKwSI7GuCKqtMhhKDgIZA=
+  on:
+    tags: true
+    branches: true
