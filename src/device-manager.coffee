@@ -3,7 +3,7 @@ crypto = require 'crypto'
 moment = require 'moment'
 
 class DeviceManager
-  constructor: ({@datastore,@uuidAliasResolver}) ->
+  constructor: ({@datastore,@uuidAliasResolver,@cache}) ->
 
   findOne: ({uuid}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
@@ -23,6 +23,9 @@ class DeviceManager
         async.apply @_updateUpdatedAt, query
         async.apply @_updateHash, query
       ], callback
+
+  removeDeviceFromCache: ({uuid}, callback) =>
+    @cache.del uuid, callback
 
   _updateDatastore: (query, data, callback) =>
     @datastore.update query, data, callback
