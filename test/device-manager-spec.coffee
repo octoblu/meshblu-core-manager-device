@@ -27,3 +27,25 @@ describe 'DeviceManager', ->
 
       it 'should have a device', ->
         expect(@device).to.deep.equal uuid: 'pet-rock'
+
+  describe '->update', ->
+    describe 'when the device exists', ->
+      beforeEach (done) ->
+        record =
+          uuid: 'wet-sock'
+
+        @datastore.insert record, done
+
+      beforeEach (done) ->
+        update =
+          $set:
+            foo: 'bar'
+        @sut.update {uuid:'wet-sock',data:update}, (error) => done error
+
+      it 'should have a device', (done) ->
+        @datastore.findOne {uuid: 'wet-sock'}, (error, device) =>
+          return done error if error?
+          expect(device).to.deep.contain uuid: 'wet-sock', foo: 'bar'
+          expect(device.meshblu.updatedAt).not.to.be.undefined
+          expect(device.meshblu.hash).not.to.be.undefined
+          done()
