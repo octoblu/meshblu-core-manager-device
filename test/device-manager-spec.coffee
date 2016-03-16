@@ -60,14 +60,12 @@ describe 'DeviceManager', ->
       @sut.create {type:'not-wet'}, (error, @device) => done error
 
     it 'should return you a device with the uuid and token', ->
-      console.log @device
       expect(@device.uuid).to.exist
       expect(@device.token).to.exist
 
     it 'should have a device and all of the base properties', (done) ->
       @datastore.findOne {uuid: @device.uuid}, (error, device) =>
         return done error if error?
-        console.log device
         expect(device.type).to.equal 'not-wet'
         expect(device.online).to.be.false
         expect(device.uuid).to.exist
