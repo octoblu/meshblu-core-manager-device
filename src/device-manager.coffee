@@ -15,7 +15,7 @@ class DeviceManager
       return callback error if error?
       @datastore.insert newDevice, (error) =>
         return callback error if error?
-        @findOne {uuid:newDevice.uuid}, (error, device) =>
+        @datastore.findOne {uuid:newDevice.uuid}, (error, device) =>
           return callback error if error?
           @_storeRootTokenInCache device, (error) =>
             return callback error if error?
