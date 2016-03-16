@@ -1,5 +1,8 @@
-mongojs = require 'mongojs'
-Datastore = require 'meshblu-core-datastore'
+mongojs       = require 'mongojs'
+Datastore     = require 'meshblu-core-datastore'
+Cache         = require 'meshblu-core-cache'
+redis         = require 'fakeredis'
+uuid          = require 'uuid'
 DeviceManager = require '..'
 
 describe 'DeviceManager', ->
@@ -10,9 +13,11 @@ describe 'DeviceManager', ->
 
     @datastore.remove done
 
+    @cache = new Cache client: redis.createClient uuid.v1()
+
   beforeEach ->
     @uuidAliasResolver = resolve: (uuid, callback) => callback(null, uuid)
-    @sut = new DeviceManager {@datastore, @uuidAliasResolver}
+    @sut = new DeviceManager {@datastore, @cache, @uuidAliasResolver}
 
   describe '->findOne', ->
     describe 'when called with a subscriberUuid and has subscriptions', ->
@@ -48,4 +53,33 @@ describe 'DeviceManager', ->
           expect(device).to.deep.contain uuid: 'wet-sock', foo: 'bar'
           expect(device.meshblu.updatedAt).not.to.be.undefined
           expect(device.meshblu.hash).not.to.be.undefined
+          done()
+
+  describe '->create', ->
+    beforeEach (done) ->
+      @sut.create {type:'not-wet'}, (error, @device) => done error
+
+    it 'should return you a device with the uuid and token', ->
+      console.log @device
+      expect(@device.uuid).to.exist
+      expect(@device.token).to.exist
+
+    it 'should have a device and all of the base properties', (done) ->
+      @datastore.findOne {uuid: @device.uuid}, (error, device) =>
+        return done error if error?
+        console.log device
+        expect(device.type).to.equal 'not-wet'
+        expect(device.online).to.be.false
+        expect(device.uuid).to.exist
+        expect(device.token).to.exist
+        expect(device.meshblu.createdAt).to.exist
+        expect(device.meshblu.hash).to.exist
+        done()
+
+    it 'should create the token in the cache', (done) ->
+      @datastore.findOne {uuid: @device.uuid}, (error, device) =>
+        return done error if error?
+        @cache.exists "meshblu-token-cache:#{device.uuid}:#{device.token}", (error, result) =>
+          return done error if error?
+          expect(result).to.be.true
           done()
