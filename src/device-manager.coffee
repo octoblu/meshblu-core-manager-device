@@ -67,9 +67,10 @@ class DeviceManager
         uuid: uuid.v4()
         online: false
         token: hashedToken
-        meshblu:
-          createdAt: moment().format()
+
       newDevice = _.extend {}, properties, requiredProperties
+      newDevice.meshblu ?= {}
+      newDevice.meshblu.createdAt = moment().format()
       newDevice.meshblu.hash = @_hashObject newDevice
       callback null, newDevice
 
