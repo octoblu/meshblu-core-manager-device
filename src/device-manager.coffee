@@ -45,7 +45,11 @@ class DeviceManager
     return callback new Error 'Missing uuid' unless uuid?
     query ?= {}
     secureQuery = @_getSecureDiscoverQuery {uuid, query}
-    @datastore.find secureQuery, callback
+    @datastore
+      .find secureQuery, callback
+      .limit 1000
+      .maxTimeMS(2000)
+      .sort({_id: -1})
 
   remove: ({uuid}, callback) =>
     return callback new Error('Missing uuid') unless uuid?

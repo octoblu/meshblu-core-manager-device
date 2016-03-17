@@ -1,3 +1,4 @@
+_             = require 'lodash'
 mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
 Cache         = require 'meshblu-core-cache'
@@ -82,3 +83,20 @@ describe 'Search Devices', ->
 
       it 'should return 3 devices', ->
         expect(@devices.length).to.equal 4
+
+  describe 'when a 1100 devices are created', ->
+    beforeEach (done) ->
+      sabers = _.times 1100, =>
+        return {
+          uuid: 'fire-saber'
+          type: 'light-saber'
+          discoverWhitelist: ['darth-vader']
+        }
+      @datastore.insert sabers, done
+
+    describe 'when called and it will find only a 1000 devices', ->
+      beforeEach (done) ->
+        @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}}, (error, @devices) => done error
+
+      it 'should return 1000 devices', ->
+        expect(@devices.length).to.equal 1000
