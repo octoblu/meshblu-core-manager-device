@@ -1,8 +1,8 @@
-_      = require 'lodash'
-async  = require 'async'
-crypto = require 'crypto'
-moment = require 'moment'
-uuid   = require 'uuid'
+_                = require 'lodash'
+async            = require 'async'
+crypto           = require 'crypto'
+moment           = require 'moment'
+uuid             = require 'uuid'
 RootTokenManager = require './root-token-manager'
 
 class DeviceManager
@@ -41,6 +41,12 @@ class DeviceManager
         async.apply @_updateHash, query
       ], callback
 
+  search: ({uuid, query}, callback) =>
+    return callback new Error 'Missing uuid' unless uuid?
+    query ?= {}
+    secureQuery = @_getSecureDiscoverQuery {uuid, query}
+    @datastore.find secureQuery, callback
+
   remove: ({uuid}, callback) =>
     return callback new Error('Missing uuid') unless uuid?
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
@@ -49,6 +55,47 @@ class DeviceManager
 
   removeDeviceFromCache: ({uuid}, callback) =>
     @cache.del uuid, callback
+
+  _getNewDevice: (properties={}, token, callback) =>
+    @rootTokenManager.hash token, (error, hashedToken) =>
+      return callback error if error?
+      requiredProperties =
+        uuid: uuid.v4()
+        online: false
+        token: hashedToken
+        meshblu:
+          createdAt: moment().format()
+      newDevice = _.extend {}, properties, requiredProperties
+      newDevice.meshblu.hash = @_hashObject newDevice
+      callback null, newDevice
+
+  _getSecureDiscoverQuery: ({uuid,query})=> @_getSecureQuery {uuid,query}, 'discoverWhitelist'
+
+  _getSecureQuery: ({uuid,query}, whitelistName) =>
+    whitelistCheck = {}
+    whitelistCheck[whitelistName] = $in: ['*', uuid]
+    whitelistQuery =
+      $or: [
+        {uuid: uuid}
+        {owner: uuid}
+        whitelistCheck
+      ]
+
+    @_mergeQueryWithWhitelistQuery query, whitelistQuery
+
+  _hashObject: (object) =>
+    hasher = crypto.createHash 'sha256'
+    hasher.update JSON.stringify object
+    hasher.digest 'base64'
+
+  _mergeQueryWithWhitelistQuery: (query, whitelistQuery) =>
+    whitelistQuery = $and : [whitelistQuery]
+    whitelistQuery.$and.push $or: query.$or if query.$or?
+    whitelistQuery.$and.push $and: query.$and if query.$and?
+
+    saferQuery = _.omit query, '$or'
+
+    _.extend saferQuery, whitelistQuery
 
   _updateDatastore: (query, data, callback) =>
     @datastore.update query, data, callback
@@ -67,23 +114,5 @@ class DeviceManager
 
   _storeRootTokenInCache: ({token, uuid}, callback) =>
     @cache.set "meshblu-token-cache:#{uuid}:#{token}", '', callback
-
-  _hashObject: (object) =>
-    hasher = crypto.createHash 'sha256'
-    hasher.update JSON.stringify object
-    hasher.digest 'base64'
-
-  _getNewDevice: (properties={}, token, callback) =>
-    @rootTokenManager.hash token, (error, hashedToken) =>
-      return callback error if error?
-      requiredProperties =
-        uuid: uuid.v4()
-        online: false
-        token: hashedToken
-        meshblu:
-          createdAt: moment().format()
-      newDevice = _.extend {}, properties, requiredProperties
-      newDevice.meshblu.hash = @_hashObject newDevice
-      callback null, newDevice
 
 module.exports = DeviceManager
