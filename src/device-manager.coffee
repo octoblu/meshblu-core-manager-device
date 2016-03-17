@@ -45,9 +45,7 @@ class DeviceManager
     return callback new Error('Missing uuid') unless uuid?
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
-      @datastore.remove {uuid}, (error) =>
-        return callback error if error?
-        @cache.del uuid, callback
+      @datastore.remove {uuid}, callback
 
   removeDeviceFromCache: ({uuid}, callback) =>
     @cache.del uuid, callback
