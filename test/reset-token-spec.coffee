@@ -29,6 +29,9 @@ describe 'Reset Token', ->
       @datastore.insert device, done
 
     beforeEach (done) ->
+      @sut._storeRootTokenInCache {token:'should-change',uuid:'some-device'}, done
+
+    beforeEach (done) ->
       @sut.resetRootToken {uuid: 'some-device'}, (error, @response) => done error
 
     it 'should have a device and all of the base properties', (done) ->
@@ -42,6 +45,20 @@ describe 'Reset Token', ->
     it 'should respond with the uuid and token', ->
       expect(@response.uuid).to.equal 'some-device'
       expect(@response.token).to.exist
+
+    it 'should not have old token in cache', (done) ->
+      @cache.exists "meshblu-token-cache:some-device:should-change", (error, result) =>
+        return done error if error?
+        expect(result).to.be.false
+        done()
+
+    it 'should not have the new token in cache', (done) ->
+      @datastore.findOne {uuid: 'some-device'}, (error, device) =>
+        return done error if error?
+        @cache.exists "meshblu-token-cache:some-device:#{device.token}", (error, result) =>
+          return done error if error?
+          expect(result).to.be.true
+          done()
 
   describe 'when called without a uuid', ->
     beforeEach (done) ->

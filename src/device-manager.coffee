@@ -62,10 +62,16 @@ class DeviceManager
 
   resetRootToken: ({uuid}, callback) =>
     return callback new Error 'Missing uuid' unless uuid?
-    token = @rootTokenManager.generate()
-    @update {uuid, data: {$set: {token}}}, (error) =>
-      return callback error if error?
-      callback null, {uuid, token}
+    @uuidAliasResolver.resolve uuid, (error, uuid) =>
+      @datastore.findOne {uuid}, (error, device) =>
+        @_removeRootTokenInCache {uuid, token: device.token}, (error) =>
+          return callback error if error?
+          token = @rootTokenManager.generate()
+          @update {uuid, data: {$set: {token}}}, (error) =>
+            return callback error if error?
+            @_storeRootTokenInCache {uuid, token}, (error) =>
+              return callback error if error?
+              callback null, {uuid, token}
 
   _getNewDevice: (properties={}, token, callback) =>
     @rootTokenManager.hash token, (error, hashedToken) =>
@@ -123,6 +129,9 @@ class DeviceManager
       delete record.meshblu?.hash
       hashedDevice = @_hashObject record
       @datastore.update query, $set: {'meshblu.hash': hashedDevice}, callback
+
+  _removeRootTokenInCache: ({token, uuid}, callback) =>
+    @cache.del "meshblu-token-cache:#{uuid}:#{token}", callback
 
   _storeRootTokenInCache: ({token, uuid}, callback) =>
     @cache.set "meshblu-token-cache:#{uuid}:#{token}", '', callback
