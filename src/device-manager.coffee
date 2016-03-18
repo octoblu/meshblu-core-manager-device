@@ -60,6 +60,13 @@ class DeviceManager
   removeDeviceFromCache: ({uuid}, callback) =>
     @cache.del uuid, callback
 
+  resetRootToken: ({uuid}, callback) =>
+    return callback new Error 'Missing uuid' unless uuid?
+    token = @rootTokenManager.generate()
+    @update {uuid, data: {$set: {token}}}, (error) =>
+      return callback error if error?
+      callback null, {uuid, token}
+
   _getNewDevice: (properties={}, token, callback) =>
     @rootTokenManager.hash token, (error, hashedToken) =>
       return callback error if error?
