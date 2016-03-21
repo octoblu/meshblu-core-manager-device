@@ -131,9 +131,9 @@ class DeviceManager
       @datastore.update query, $set: {'meshblu.hash': hashedDevice}, callback
 
   _removeRootTokenInCache: ({token, uuid}, callback) =>
-    @cache.del "meshblu-token-cache:#{uuid}:#{token}", callback
+    @cache.del "#{uuid}:#{token}", callback
 
   _storeRootTokenInCache: ({token, uuid}, callback) =>
-    @cache.set "meshblu-token-cache:#{uuid}:#{token}", '', callback
+    @cache.set "#{uuid}:#{token}", '', callback
 
 module.exports = DeviceManager

@@ -47,7 +47,7 @@ describe 'Reset Token', ->
       expect(@response.token).to.exist
 
     it 'should not have old token in cache', (done) ->
-      @cache.exists "meshblu-token-cache:some-device:should-change", (error, result) =>
+      @cache.exists "some-device:should-change", (error, result) =>
         return done error if error?
         expect(result).to.be.false
         done()
@@ -55,7 +55,7 @@ describe 'Reset Token', ->
     it 'should not have the new token in cache', (done) ->
       @datastore.findOne {uuid: 'some-device'}, (error, device) =>
         return done error if error?
-        @cache.exists "meshblu-token-cache:some-device:#{device.token}", (error, result) =>
+        @cache.exists "some-device:#{device.token}", (error, result) =>
           return done error if error?
           expect(result).to.be.true
           done()
