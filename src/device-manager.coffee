@@ -44,7 +44,7 @@ class DeviceManager
   search: ({uuid, query}, callback) =>
     return callback new Error 'Missing uuid' unless uuid?
     query ?= {}
-    secureQuery = @_getSecureDiscoverQuery {uuid, query}
+    secureQuery = @_getSearchWhitelistQuery {uuid, query}
     @datastore
       .find secureQuery, callback
       .limit 1000
@@ -87,17 +87,17 @@ class DeviceManager
       newDevice.meshblu.hash = @_hashObject newDevice
       callback null, newDevice
 
-  _getSecureDiscoverQuery: ({uuid,query})=> @_getSecureQuery {uuid,query}, 'discoverWhitelist'
-
-  _getSecureQuery: ({uuid,query}, whitelistName) =>
+  _getSearchWhitelistQuery: ({uuid,query}) =>
     whitelistCheck = {}
-    whitelistCheck[whitelistName] = $in: ['*', uuid]
+    whitelistCheck.discoverWhitelist = $in: ['*', uuid]
     whitelistQuery =
       $or: [
         {uuid: uuid}
         {owner: uuid}
         whitelistCheck
+        # newWhitelistCheck
       ]
+
 
     @_mergeQueryWithWhitelistQuery query, whitelistQuery
 

@@ -79,6 +79,7 @@ describe 'Search Devices', ->
 
       it 'should return 4 devices', ->
         expect(@devices.length).to.equal 4
+        
       it 'should return the correct devices', ->
         expect(@devices).to.containSubset [
           {uuid: 'underwater-lightsaber'}
