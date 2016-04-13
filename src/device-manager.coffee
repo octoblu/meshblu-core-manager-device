@@ -88,18 +88,37 @@ class DeviceManager
       callback null, newDevice
 
   _getSearchWhitelistQuery: ({uuid,query}) =>
-    whitelistCheck = {}
-    whitelistCheck.discoverWhitelist = $in: ['*', uuid]
-    whitelistQuery =
+    whitelistCheck =
+      $or: [
+        @_getOGWhitelistCheck {uuid}
+        @_getV2WhitelistCheck {uuid}
+      ]
+    @_mergeQueryWithWhitelistQuery query, whitelistCheck
+
+  _getOGWhitelistCheck: ({uuid}) =>
+    versionCheck =
+      'meshblu.version': { $ne: '2.0.0' }
+
+    whitelistCheck =
       $or: [
         {uuid: uuid}
         {owner: uuid}
-        whitelistCheck
-        # newWhitelistCheck
+        {discoverWhitelist: $in: ['*', uuid]}
       ]
 
+    return $and: [ versionCheck, whitelistCheck ]
 
-    @_mergeQueryWithWhitelistQuery query, whitelistQuery
+  _getV2WhitelistCheck: ({uuid}) =>
+    versionCheck =
+      'meshblu.version': '2.0.0'
+
+    whitelistCheck =
+      $or: [
+        {"meshblu.whitelists.discover.view.*": {$exists: true}}
+        {"meshblu.whitelists.discover.view.#{uuid}": {$exists: true}}
+      ]
+      
+    return $and: [ versionCheck, whitelistCheck ]
 
   _hashObject: (object) =>
     hasher = crypto.createHash 'sha256'

@@ -27,7 +27,7 @@ describe 'Search Devices', ->
     it 'should have an error', ->
       expect(@error.message).to.equal 'Missing uuid'
 
-  describe 'when devices are stored in the database', ->
+  context 'OG devices', ->
     beforeEach (done) ->
       sabers = [
         {
@@ -47,16 +47,6 @@ describe 'Search Devices', ->
           discoverWhitelist: ['*']
         }
         {
-          uuid: 'heart-saber'
-          type: 'light-saber'
-          meshblu:
-            version: '2.0.0'
-            whitelists:
-              discover:
-                view:
-                  '*': true
-        }
-        {
           uuid: 'curve-hilted'
           type: 'light-saber'
           color: 'blue'
@@ -73,34 +63,140 @@ describe 'Search Devices', ->
       ]
       @datastore.insert sabers, done
 
-    describe 'when called and it will find devices', ->
+    context 'when called and it will find devices', ->
       beforeEach (done) ->
         @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}}, (error, @devices) => done error
 
-      it 'should return 4 devices', ->
-        expect(@devices.length).to.equal 4
+      it 'should return 3 devices', ->
+        expect(@devices.length).to.equal 3
 
       it 'should return the correct devices', ->
         expect(@devices).to.containSubset [
           {uuid: 'underwater-lightsaber'}
-          {uuid: 'heart-saber'}
           {uuid: 'fire-saber'}
           {uuid: 'dual-phase-lightsaber'}
         ]
 
-    describe 'when called with a null query and it will find devices', ->
+    context 'when called with a null query and it will find devices', ->
       beforeEach (done) ->
         @sut.search {uuid: 'darth-vader', query: null}, (error, @devices) => done error
 
       it 'should return 3 devices', ->
         expect(@devices.length).to.equal 4
 
-    describe 'when called with an empty query and it will find devices', ->
+    context 'when called with an empty query and it will find devices', ->
       beforeEach (done) ->
         @sut.search {uuid: 'darth-vader', query: null}, (error, @devices) => done error
 
       it 'should return 3 devices', ->
         expect(@devices.length).to.equal 4
+
+  context 'V2.0.0 Devices', ->
+    beforeEach (done) ->
+      beers = [
+        {
+          uuid: 'coors-i-dont-know'
+          meshblu:
+            version: '2.0.0'
+            whitelists:
+              discover: view: '*': true
+          type: 'light-beer'
+
+        }
+        {
+          uuid: 'peters-secret-special-brew'
+          meshblu:
+            version: '2.0.0'
+            whitelists:
+              discover: view: 'darth-peter': true
+          type: 'light-beer'
+
+        }
+        {
+          uuid: 'that-lucky-charms-leprechauns-brew'
+          meshblu:
+            version: '2.0.0'
+            whitelists:
+              discover: view: 'that-lucky-charms-leprechaun': true
+          type: 'light-beer'
+
+        }
+        {
+          uuid: 'peters-ipa-he-pretends-doesnt-exist'
+          meshblu:
+            version: '2.0.0'
+            whitelists:
+              discover: view: '*': true
+          type: 'ipa-beer'
+
+        }
+      ]
+      @datastore.insert beers, done
+
+    beforeEach (done) ->
+      @sut.search {uuid: 'darth-peter', query: {type:'light-beer'}}, (error, @devices) => done error
+
+    it 'should return 2 devices', ->
+      expect(@devices.length).to.equal 2
+
+    it 'should return the correct devices', ->
+      expect(@devices).to.containSubset [
+        {uuid: 'coors-i-dont-know'}
+        {uuid: 'peters-secret-special-brew'}
+      ]
+
+  context 'messed up hybrid devices', ->
+    context 'v2 device with an OG whitelist', ->
+      beforeEach (done) ->
+        freakDevice =
+          uuid: 'miss-transmogrified'
+          meshblu:
+            version: '2.0.0'
+          discoverWhitelist: ['*']
+          type: 'freak'
+
+        @datastore.insert [freakDevice], done
+
+      beforeEach (done) ->
+        @sut.search {uuid: 'freak-finder', query: {type:'freak'}}, (error, @devices) => done error
+
+      it 'should not return devices', ->
+        expect(@devices).to.be.empty
+
+    context 'v2 device with an owner', ->
+      beforeEach (done) ->
+        freakDevice =
+          uuid: 'you-cant-own-me'
+          meshblu:
+            version: '2.0.0'
+          owner: 'freak-finder'
+          type: 'freak'
+
+        @datastore.insert [freakDevice], done
+
+      beforeEach (done) ->
+        @sut.search {uuid: 'freak-finder', query: {type:'freak'}}, (error, @devices) => done error
+
+      it 'should not return devices', ->
+        expect(@devices).to.be.empty
+
+  context 'OG device with v2 whitelists', ->
+    beforeEach (done) ->
+      freakDevice =
+        uuid: 'do-what-i-want-not-what-i-say'
+        meshblu:
+          whitelists:
+            discover:
+              view: '*': true
+        type: 'freak'
+
+      @datastore.insert [freakDevice], done
+
+    beforeEach (done) ->
+      @sut.search {uuid: 'freak-finder', query: {type:'freak'}}, (error, @devices) => done error
+
+    it 'should not return devices', ->
+      expect(@devices).to.be.empty
 
   describe 'when a 1100 devices are created', ->
     beforeEach (done) ->
