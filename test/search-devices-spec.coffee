@@ -31,24 +31,20 @@ describe 'Search Devices', ->
     beforeEach (done) ->
       sabers = [
         {
-          uuid: 'curve-hilted'
-          type: 'light-saber'
-          color: 'blue'
-        }
-        {
           uuid: 'underwater-lightsaber'
           owner: 'darth-vader'
-          type: 'light-saber'
-        }
-        {
-          uuid: 'great-lightsaber'
-          configureWhitelist: ['*']
           type: 'light-saber'
         }
         {
           uuid: 'fire-saber'
           type: 'light-saber'
           discoverWhitelist: ['darth-vader']
+        }
+        {
+          uuid: 'dual-phase-lightsaber'
+          type: 'light-saber'
+          color: 'red'
+          discoverWhitelist: ['*']
         }
         {
           uuid: 'heart-saber'
@@ -61,10 +57,14 @@ describe 'Search Devices', ->
                   '*': true
         }
         {
-          uuid: 'dual-phase-lightsaber'
+          uuid: 'curve-hilted'
           type: 'light-saber'
-          color: 'red'
-          discoverWhitelist: ['*']
+          color: 'blue'
+        }
+        {
+          uuid: 'great-lightsaber'
+          configureWhitelist: ['*']
+          type: 'light-saber'
         }
         {
           uuid: 'darth-vader'
@@ -79,7 +79,7 @@ describe 'Search Devices', ->
 
       it 'should return 4 devices', ->
         expect(@devices.length).to.equal 4
-        
+
       it 'should return the correct devices', ->
         expect(@devices).to.containSubset [
           {uuid: 'underwater-lightsaber'}
