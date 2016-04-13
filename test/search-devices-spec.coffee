@@ -51,6 +51,16 @@ describe 'Search Devices', ->
           discoverWhitelist: ['darth-vader']
         }
         {
+          uuid: 'heart-saber'
+          type: 'light-saber'
+          meshblu:
+            version: '2.0.0'
+            whitelists:
+              discover:
+                view:
+                  '*': true
+        }
+        {
           uuid: 'dual-phase-lightsaber'
           type: 'light-saber'
           color: 'red'
@@ -67,8 +77,15 @@ describe 'Search Devices', ->
       beforeEach (done) ->
         @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}}, (error, @devices) => done error
 
-      it 'should return 3 devices', ->
-        expect(@devices.length).to.equal 3
+      it 'should return 4 devices', ->
+        expect(@devices.length).to.equal 4
+      it 'should return the correct devices', ->
+        expect(@devices).to.containSubset [
+          {uuid: 'underwater-lightsaber'}
+          {uuid: 'heart-saber'}
+          {uuid: 'fire-saber'}
+          {uuid: 'dual-phase-lightsaber'}
+        ]
 
     describe 'when called with a null query and it will find devices', ->
       beforeEach (done) ->
