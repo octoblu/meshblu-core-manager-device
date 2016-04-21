@@ -99,7 +99,7 @@ describe 'Search Devices', ->
           meshblu:
             version: '2.0.0'
             whitelists:
-              discover: view: '*': true
+              discover: view: [uuid: '*']
           type: 'light-beer'
 
         }
@@ -108,7 +108,7 @@ describe 'Search Devices', ->
           meshblu:
             version: '2.0.0'
             whitelists:
-              discover: view: 'darth-peter': true
+              discover: view: [uuid: 'darth-peter']
           type: 'light-beer'
 
         }
@@ -117,7 +117,7 @@ describe 'Search Devices', ->
           meshblu:
             version: '2.0.0'
             whitelists:
-              discover: view: 'that-lucky-charms-leprechaun': true
+              discover: view: [uuid: 'that-lucky-charms-leprechaun']
           type: 'light-beer'
 
         }
@@ -126,7 +126,7 @@ describe 'Search Devices', ->
           meshblu:
             version: '2.0.0'
             whitelists:
-              discover: view: '*': true
+              discover: view: [uuid: '*']
           type: 'ipa-beer'
 
         }
@@ -187,7 +187,7 @@ describe 'Search Devices', ->
         meshblu:
           whitelists:
             discover:
-              view: '*': true
+              view: [uuid: '*']
         type: 'freak'
 
       @datastore.insert [freakDevice], done

@@ -113,11 +113,8 @@ class DeviceManager
       'meshblu.version': '2.0.0'
 
     whitelistCheck =
-      $or: [
-        {"meshblu.whitelists.discover.view.*": {$exists: true}}
-        {"meshblu.whitelists.discover.view.#{uuid}": {$exists: true}}
-      ]
-      
+      {"meshblu.whitelists.discover.view.uuid": $in: ['*', uuid]}
+
     return $and: [ versionCheck, whitelistCheck ]
 
   _hashObject: (object) =>
