@@ -7,11 +7,12 @@ DeviceManager = require '..'
 
 describe 'Find Device', ->
   beforeEach (done) ->
+    database = mongojs 'device-manager-test', ['devices']
     @datastore = new Datastore
-      database: mongojs 'device-manager-test'
-      collection: 'devices-test'
+      database: database
+      collection: 'devices'
 
-    @datastore.remove done
+    database.devices.remove done
 
     @cache = new Cache client: redis.createClient uuid.v1()
 
