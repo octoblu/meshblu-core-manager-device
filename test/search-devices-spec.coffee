@@ -66,7 +66,7 @@ describe 'Search Devices', ->
 
     context 'when called and it will find devices', ->
       beforeEach (done) ->
-        @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}}, (error, @devices) => done error
+        @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}, projection: {uuid: true}}, (error, @devices) => done error
 
       it 'should return 3 devices', ->
         expect(@devices.length).to.equal 3
@@ -77,6 +77,7 @@ describe 'Search Devices', ->
           {uuid: 'fire-saber'}
           {uuid: 'dual-phase-lightsaber'}
         ]
+        expect(_.first(@devices).type).to.not.exist
 
     context 'when called with a null query and it will find devices', ->
       beforeEach (done) ->

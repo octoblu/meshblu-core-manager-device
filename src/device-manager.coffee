@@ -41,7 +41,7 @@ class DeviceManager
         async.apply @_updateHash, query, {uuid}
       ], callback
 
-  search: ({uuid, query}, callback) =>
+  search: ({uuid, query, projection}, callback) =>
     return callback new Error 'Missing uuid' unless uuid?
     query ?= {}
     secureQuery = @_getSearchWhitelistQuery {uuid, query}
@@ -50,7 +50,7 @@ class DeviceManager
       maxTimeMS: 2000
       sort:      {_id: -1}
 
-    @datastore.find secureQuery, null, options, callback
+    @datastore.find secureQuery, projection, options, callback
 
   remove: ({uuid}, callback) =>
     return callback new Error('Missing uuid') unless uuid?
