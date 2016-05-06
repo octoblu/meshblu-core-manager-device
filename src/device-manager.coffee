@@ -22,12 +22,12 @@ class DeviceManager
             device.token = token
             callback null, device
 
-  findOne: ({uuid}, callback) =>
+  findOne: ({uuid, projection}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
 
       query = {uuid}
-      @datastore.findOne query, callback
+      @datastore.findOne query, projection, callback
 
   update: ({uuid, data}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>

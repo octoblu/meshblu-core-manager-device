@@ -32,3 +32,21 @@ describe 'Find Device', ->
 
     it 'should have a device', ->
       expect(@device).to.deep.equal uuid: 'pet-rock'
+
+  describe 'with a projection', ->
+    beforeEach (done) ->
+      record =
+        uuid: 'pet-rock'
+        blah: 'blargh'
+        hi: 'low'
+
+      @datastore.insert record, done
+
+    beforeEach (done) ->
+      uuid = 'pet-rock'
+      projection = hi: false
+
+      @sut.findOne {uuid, projection}, (error, @device) => done error
+
+    it 'should have a device with projection', ->
+      expect(@device).to.deep.equal uuid: 'pet-rock', blah: 'blargh'
