@@ -1,10 +1,10 @@
 {
   "name": "meshblu-core-manager-device",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "istanbul cover _mocha -- -R spec"
+    "test": "istanbul cover _mocha -- -R spec --require coffee-coverage/register-istanbul"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
     "fakeredis": "^1.0.2",
     "istanbul": "^0.4.0",
     "meshblu-core-cache": "^1.5.0",
-    "meshblu-core-datastore": "^4.0.1",
+    "meshblu-core-datastore": "^4.5.0",
     "mocha": "^2.3.3",
     "mocha-istanbul": "^0.2.0",
     "mongojs": "^2.2.2",
