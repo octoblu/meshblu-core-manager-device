@@ -1,3 +1,6 @@
+{beforeEach, describe, it} = global
+{expect} = require 'chai'
+
 mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
 Cache         = require 'meshblu-core-cache'
@@ -74,3 +77,17 @@ describe 'Create Device', ->
           return done error if error?
           expect(result).to.be.true
           done()
+
+  describe 'when called with online true', ->
+    beforeEach (done) ->
+      @sut.create {online: true}, (error, @device) => done error
+
+    it 'should return you a device with the uuid and token', ->
+      expect(@device.uuid).to.exist
+      expect(@device.token).to.exist
+
+    it 'should have a device with online true', (done) ->
+      @datastore.findOne {uuid: @device.uuid}, (error, device) =>
+        return done error if error?
+        expect(device.online).to.be.true
+        done()

@@ -85,10 +85,9 @@ class DeviceManager
       uuid = UUID.v4()
       requiredProperties =
         uuid: uuid
-        online: false
         token: hashedToken
 
-      newDevice = _.extend {}, properties, requiredProperties
+      newDevice = _.extend {online: false}, properties, requiredProperties
       newDevice.meshblu ?= {}
       newDevice.meshblu.createdAt = moment().format()
       newDevice.meshblu.hash = @_createHash {uuid}
