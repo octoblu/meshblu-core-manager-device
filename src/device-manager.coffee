@@ -11,16 +11,14 @@ class DeviceManager
 
   create: (properties={}, callback) =>
     token = @rootTokenManager.generate()
-    @_getNewDevice properties, token, (error, newDevice) =>
+    @_getNewDevice properties, token, (error, device) =>
       return callback error if error?
-      @datastore.insert newDevice, (error) =>
+      @datastore.insert device, (error) =>
         return callback error if error?
-        @datastore.findOne {uuid: newDevice.uuid}, (error, device) =>
+        @_storeRootTokenInCache device, (error) =>
           return callback error if error?
-          @_storeRootTokenInCache device, (error) =>
-            return callback error if error?
-            device.token = token
-            callback null, device
+          device.token = token
+          callback null, device
 
   findOne: ({uuid, projection}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
