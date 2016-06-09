@@ -2,6 +2,7 @@ mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
 Cache         = require 'meshblu-core-cache'
 redis         = require 'fakeredis'
+MongoKey      = require 'mongo-key-escape'
 uuid          = require 'uuid'
 DeviceManager = require '..'
 
@@ -22,8 +23,11 @@ describe 'Find Device', ->
 
   describe 'when called with a subscriberUuid and has devices-test', ->
     beforeEach (done) ->
+      refKey = MongoKey.escape '$ref'
       record =
         uuid: 'pet-rock'
+        something: {}
+      record.something[refKey] = 'oh-no'
 
       @datastore.insert record, done
 
@@ -31,7 +35,8 @@ describe 'Find Device', ->
       @sut.findOne {uuid:'pet-rock'}, (error, @device) => done error
 
     it 'should have a device', ->
-      expect(@device).to.deep.equal uuid: 'pet-rock'
+      expect(@device.uuid).to.equal 'pet-rock'
+      expect(@device.something['$ref']).to.equal 'oh-no'
 
   describe 'with a projection', ->
     beforeEach (done) ->

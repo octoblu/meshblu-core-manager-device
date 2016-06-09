@@ -45,7 +45,7 @@ describe 'Create Device', ->
     it 'should create the token in the cache', (done) ->
       @datastore.findOne {uuid: @device.uuid}, (error, device) =>
         return done error if error?
-        @cache.exists "#{device.uuid}:#{device.token}", (error, result) =>
+        @cache.exists "#{device.uuid}:#{@device.token}", (error, result) =>
           return done error if error?
           expect(result).to.be.true
           done()
@@ -73,7 +73,7 @@ describe 'Create Device', ->
     it 'should create the token in the cache', (done) ->
       @datastore.findOne {uuid: @device.uuid}, (error, device) =>
         return done error if error?
-        @cache.exists "#{device.uuid}:#{device.token}", (error, result) =>
+        @cache.exists "#{device.uuid}:#{@device.token}", (error, result) =>
           return done error if error?
           expect(result).to.be.true
           done()
