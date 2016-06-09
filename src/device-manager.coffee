@@ -3,6 +3,7 @@ async            = require 'async'
 crypto           = require 'crypto'
 moment           = require 'moment'
 UUID             = require 'uuid'
+MongoKey         = require 'mongo-key-escape'
 RootTokenManager = require './root-token-manager'
 
 class DeviceManager
@@ -15,9 +16,9 @@ class DeviceManager
       return callback error if error?
       @datastore.insert device, (error) =>
         return callback error if error?
+        device.token = token
         @_storeRootTokenInCache device, (error) =>
           return callback error if error?
-          device.token = token
           callback null, device
 
   findOne: ({uuid, projection}, callback) =>
@@ -25,7 +26,7 @@ class DeviceManager
       return callback error if error?
 
       query = {uuid}
-      @datastore.findOne query, projection, callback
+      @_findOne query, projection, callback
 
   update: ({uuid, data}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
@@ -48,7 +49,9 @@ class DeviceManager
       maxTimeMS: 2000
       sort:      {_id: -1}
 
-    @datastore.find secureQuery, projection, options, callback
+    @datastore.find secureQuery, @_escapeProjection(projection), options, (error, devices) =>
+      return callback error if error?
+      callback null, _.map devices, @_mongoUnescapeObject
 
   remove: ({uuid}, callback) =>
     return callback new Error('Missing uuid') unless uuid?
@@ -67,7 +70,7 @@ class DeviceManager
       projection =
         uuid: true
         token: true
-      @datastore.findOne {uuid}, projection, (error, device) =>
+      @_findOne {uuid}, projection, (error, device) =>
         @_removeRootTokenInCache {uuid, token: device.token}, (error) =>
           return callback error if error?
           token = @rootTokenManager.generate()
@@ -76,6 +79,12 @@ class DeviceManager
             @_storeRootTokenInCache {uuid, token}, (error) =>
               return callback error if error?
               callback null, {uuid, token}
+
+  _findOne: (query, projection, callback) =>
+
+    @datastore.findOne query, @_escapeProjection(projection), (error, device) =>
+      return callback error if error?
+      callback null, @_mongoUnescapeObject device
 
   _getNewDevice: (properties={}, token, callback) =>
     @rootTokenManager.hash token, (error, hashedToken) =>
@@ -121,9 +130,13 @@ class DeviceManager
 
     return $and: [ versionCheck, whitelistCheck ]
 
-  _createHash: (object) =>
+  _escapeProjection: (projection) =>
+    return projection unless projection
+    return @_mongoEscapeObject projection
+
+  _createHash: ({ uuid }) =>
     hasher = crypto.createHash 'sha256'
-    hasher.update object.uuid
+    hasher.update uuid
     hasher.update moment().format()
     hasher.digest 'base64'
 
@@ -136,8 +149,27 @@ class DeviceManager
 
     _.extend saferQuery, whitelistQuery
 
+  _mongoEscapeObject: (obj) =>
+    return obj unless obj
+    escapedObj = {}
+    _.each obj, (value, key) =>
+      value = @_mongoEscapeObject value if _.isPlainObject value
+      escapedKey = MongoKey.escape key
+      escapedObj[escapedKey] = value
+    return escapedObj
+
+  _mongoUnescapeObject: (obj) =>
+    return obj unless obj
+    unescapeObj = {}
+    _.each obj, (value, key) =>
+      value = @_mongoUnescapeObject value if _.isPlainObject value
+      unescapeKey = MongoKey.unescape key
+      unescapeObj[unescapeKey] = value
+    return unescapeObj
+
   _updateDatastore: (query, data, callback) =>
-    @datastore.update query, data, callback
+    updateObj = _.mapValues data, @_mongoEscapeObject
+    @datastore.update query, updateObj, callback
 
   _updateUpdatedAt: (query, callback) =>
     @datastore.update query, $set: {'meshblu.updatedAt': moment().format()}, callback

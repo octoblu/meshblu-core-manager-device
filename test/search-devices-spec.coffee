@@ -3,6 +3,7 @@ mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
 Cache         = require 'meshblu-core-cache'
 redis         = require 'fakeredis'
+MongoKey      = require 'mongo-key-escape'
 uuid          = require 'uuid'
 DeviceManager = require '..'
 
@@ -62,11 +63,15 @@ describe 'Search Devices', ->
           type: 'sith-lord'
         }
       ]
+      refKey = MongoKey.escape('$ref')
+      sabers = _.map sabers, (saber) =>
+        saber[refKey] = 'sweet'
+        return saber
       @datastore.insert sabers, done
 
     context 'when called and it will find devices', ->
       beforeEach (done) ->
-        @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}, projection: {uuid: true}}, (error, @devices) => done error
+        @sut.search {uuid: 'darth-vader', query: {type:'light-saber'}, projection: { uuid: true, $ref: true } }, (error, @devices) => done error
 
       it 'should return 3 devices', ->
         expect(@devices.length).to.equal 3
@@ -79,6 +84,10 @@ describe 'Search Devices', ->
         ]
         expect(_.first(@devices).type).to.not.exist
 
+      it 'should have de-ref\'d devices', ->
+        _.each @devices, (device) =>
+          expect(device['$ref']).to.equal 'sweet'
+
     context 'when called with a null query and it will find devices', ->
       beforeEach (done) ->
         @sut.search {uuid: 'darth-vader', query: null}, (error, @devices) => done error
@@ -86,7 +95,16 @@ describe 'Search Devices', ->
       it 'should return 3 devices', ->
         expect(@devices.length).to.equal 4
 
+      it 'should have de-ref\'d devices', ->
+        _.each @devices, (device) =>
+          expect(device['$ref']).to.equal 'sweet'
+
     context 'when called with an empty query and it will find devices', ->
+      it 'should have de-ref\'d devices', ->
+        _.each @devices, (device) =>
+          expect(device['$ref']).to.equal 'sweet'
+
+    describe 'when called with an empty query and it will find devices', ->
       beforeEach (done) ->
         @sut.search {uuid: 'darth-vader', query: null}, (error, @devices) => done error
 

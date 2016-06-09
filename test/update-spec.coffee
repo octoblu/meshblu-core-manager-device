@@ -27,16 +27,51 @@ describe 'Update Device', ->
 
       @datastore.insert record, done
 
-    beforeEach (done) ->
-      update =
-        $set:
-          foo: 'bar'
-      @sut.update {uuid:'wet-sock',data:update}, (error) => done error
+    describe 'when the device is updated', ->
+      beforeEach (done) ->
+        update =
+          $set:
+            foo: 'bar'
+        @sut.update {uuid:'wet-sock',data:update}, (error) => done error
 
-    it 'should have a device', (done) ->
-      @datastore.findOne {uuid: 'wet-sock'}, (error, device) =>
-        return done error if error?
-        expect(device).to.deep.contain uuid: 'wet-sock', foo: 'bar'
-        expect(device.meshblu.updatedAt).not.to.be.undefined
-        expect(device.meshblu.hash).not.to.be.undefined
-        done()
+      it 'should have a device', (done) ->
+        @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
+          return done error if error?
+          expect(device).to.deep.contain uuid: 'wet-sock', foo: 'bar'
+          expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.hash).to.exist
+          done()
+
+    describe 'when the device is updated with a $ key at the top', ->
+      beforeEach (done) ->
+        update =
+          $set:
+            $ref: 'bar'
+        @sut.update {uuid:'wet-sock',data:update}, (error) => done error
+
+      it 'should have a device', (done) ->
+        @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
+          return done error if error?
+          expect(device.uuid).to.equal 'wet-sock'
+          expect(device.$ref).to.equal 'bar'
+          expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.hash).to.exist
+          done()
+
+      describe 'when the device is updated with a $ key deep', ->
+        beforeEach (done) ->
+          update =
+            $set:
+              hello:
+                hello:
+                  $ref: 'bar'
+          @sut.update {uuid:'wet-sock',data:update}, (error) => done error
+
+        it 'should have a device', (done) ->
+          @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
+            return done error if error?
+            expect(device.uuid).to.equal 'wet-sock'
+            expect(device.hello).to.deep.equal { hello: { $ref: 'bar' } }
+            expect(device.meshblu.updatedAt).to.exist
+            expect(device.meshblu.hash).to.exist
+            done()
