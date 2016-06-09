@@ -16,9 +16,9 @@ class DeviceManager
       return callback error if error?
       @datastore.insert device, (error) =>
         return callback error if error?
-        device.token = token
         @_storeRootTokenInCache device, (error) =>
           return callback error if error?
+          device.token = token
           callback null, device
 
   findOne: ({uuid, projection}, callback) =>
