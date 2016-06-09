@@ -9,6 +9,14 @@ assert_dependents(){
   fi
 }
 
+add_branches_only_to_travis() {
+  local travis_file="$(cat .travis.yml)"
+  echo "$travis_file" | grep '^branches'
+  if [ "$?" == "1" ]; then
+    echo -e "branches:\n  only:\n  - \"/^v[0-9]/\"\n$travis_file" > .travis.yml
+  fi
+}
+
 clone_repo(){
   local dependent="$1"
 
@@ -30,6 +38,10 @@ gump_it(){
   gump --major "Updating to: $new_version"
 }
 
+git_diff() {
+  git diff
+}
+
 run_tests(){
   npm install \
   && npm test
@@ -38,7 +50,7 @@ run_tests(){
 update_dependency(){
   local new_version="$1"
 
-  npm install "$new_version"
+  npm install --save "$new_version"
 }
 
 update_dependent(){
@@ -53,6 +65,8 @@ update_dependent(){
   && cd "$dependent_dir" \
   && update_dependency "$new_version" \
   && run_tests \
+  && add_branches_only_to_travis \
+  && git_diff \
   && gump_it "$new_version"
 
   local exit_code=$?
