@@ -75,3 +75,19 @@ describe 'Update Device', ->
             expect(device.meshblu.updatedAt).to.exist
             expect(device.meshblu.hash).to.exist
             done()
+
+      describe 'when the device is updated with a . key', ->
+        beforeEach (done) ->
+          update =
+            $set:
+              'hello.hello': 'hi'
+          @sut.update {uuid:'wet-sock',data:update}, (error) => done error
+
+        it 'should have a device', (done) ->
+          @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
+            return done error if error?
+            expect(device.uuid).to.equal 'wet-sock'
+            expect(device.hello).to.deep.equal { hello: 'hi' }
+            expect(device.meshblu.updatedAt).to.exist
+            expect(device.meshblu.hash).to.exist
+            done()

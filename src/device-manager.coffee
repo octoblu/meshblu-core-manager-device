@@ -3,7 +3,7 @@ async            = require 'async'
 crypto           = require 'crypto'
 moment           = require 'moment'
 UUID             = require 'uuid'
-MongoKey         = require 'mongo-key-escape'
+MongoKey         = require './mongo-key'
 RootTokenManager = require './root-token-manager'
 
 class DeviceManager

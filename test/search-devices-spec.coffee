@@ -3,7 +3,7 @@ mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
 Cache         = require 'meshblu-core-cache'
 redis         = require 'fakeredis'
-MongoKey      = require 'mongo-key-escape'
+MongoKey      = require '../src/mongo-key'
 uuid          = require 'uuid'
 DeviceManager = require '..'
 
@@ -36,6 +36,9 @@ describe 'Search Devices', ->
           uuid: 'underwater-lightsaber'
           owner: 'darth-vader'
           type: 'light-saber'
+          hello: {
+            hello: 'hi'
+          }
         }
         {
           uuid: 'fire-saber'
@@ -87,6 +90,17 @@ describe 'Search Devices', ->
       it 'should have de-ref\'d devices', ->
         _.each @devices, (device) =>
           expect(device['$ref']).to.equal 'sweet'
+
+    context 'when called with a dot notated projection', ->
+      beforeEach (done) ->
+        @sut.search {uuid: 'darth-vader', query: {type:'light-saber', 'hello.hello': 'hi' }, projection: { uuid: true, 'hello.hello': true } }, (error, @devices) => done error
+
+      it 'should return 1 devices', ->
+        expect(@devices.length).to.equal 1
+
+      it 'should have de-ref\'d devices', ->
+        _.each @devices, (device) =>
+          expect(device.hello.hello).to.equal 'hi'
 
     context 'when called with a null query and it will find devices', ->
       beforeEach (done) ->

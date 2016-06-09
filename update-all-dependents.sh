@@ -27,7 +27,7 @@ get_new_version(){
 
 gump_it(){
   local new_version="$1"
-  gump --patch "Updating to: $new_version"
+  gump --major "Updating to: $new_version"
 }
 
 run_tests(){

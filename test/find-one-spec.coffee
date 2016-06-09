@@ -2,7 +2,7 @@ mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
 Cache         = require 'meshblu-core-cache'
 redis         = require 'fakeredis'
-MongoKey      = require 'mongo-key-escape'
+MongoKey      = require '../src/mongo-key'
 uuid          = require 'uuid'
 DeviceManager = require '..'
 
