@@ -51,7 +51,7 @@ class DeviceManager
 
     @datastore.find secureQuery, @_escapeProjection(projection), options, (error, devices) =>
       return callback error if error?
-      callback null, _.map devices, @_mongoUnescapeObject
+      callback null, _.map devices, MongoKey.unescapeObj
 
   remove: ({uuid}, callback) =>
     return callback new Error('Missing uuid') unless uuid?
@@ -81,10 +81,9 @@ class DeviceManager
               callback null, {uuid, token}
 
   _findOne: (query, projection, callback) =>
-
     @datastore.findOne query, @_escapeProjection(projection), (error, device) =>
       return callback error if error?
-      callback null, @_mongoUnescapeObject device
+      callback null, MongoKey.unescapeObj device
 
   _getNewDevice: (properties={}, token, callback) =>
     @rootTokenManager.hash token, (error, hashedToken) =>
@@ -131,8 +130,7 @@ class DeviceManager
     return $and: [ versionCheck, whitelistCheck ]
 
   _escapeProjection: (projection) =>
-    return projection unless projection
-    return @_mongoEscapeObject projection
+    return MongoKey.escapeObj projection
 
   _createHash: ({ uuid }) =>
     hasher = crypto.createHash 'sha256'
@@ -149,26 +147,8 @@ class DeviceManager
 
     _.extend saferQuery, whitelistQuery
 
-  _mongoEscapeObject: (obj) =>
-    return obj unless obj
-    escapedObj = {}
-    _.each obj, (value, key) =>
-      value = @_mongoEscapeObject value if _.isPlainObject value
-      escapedKey = MongoKey.escape key
-      escapedObj[escapedKey] = value
-    return escapedObj
-
-  _mongoUnescapeObject: (obj) =>
-    return obj unless obj
-    unescapeObj = {}
-    _.each obj, (value, key) =>
-      value = @_mongoUnescapeObject value if _.isPlainObject value
-      unescapeKey = MongoKey.unescape key
-      unescapeObj[unescapeKey] = value
-    return unescapeObj
-
   _updateDatastore: (query, data, callback) =>
-    updateObj = _.mapValues data, @_mongoEscapeObject
+    updateObj = _.mapValues data, MongoKey.escapeObj
     @datastore.update query, updateObj, callback
 
   _updateUpdatedAt: (query, callback) =>
