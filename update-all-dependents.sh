@@ -35,7 +35,7 @@ get_new_version(){
 
 gump_it(){
   local new_version="$1"
-  gump --major "Updating to: $new_version"
+  gump --patch "Updating to: $new_version"
 }
 
 git_diff() {
