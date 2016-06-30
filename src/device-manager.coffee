@@ -148,7 +148,8 @@ class DeviceManager
     _.extend saferQuery, whitelistQuery
 
   _updateDatastore: (query, data, callback) =>
-    updateObj = _.mapValues data, MongoKey.escapeObj
+    keysWeActuallyWant = ['$each']
+    updateObj = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
     @datastore.update query, updateObj, callback
 
   _updateUpdatedAt: (query, callback) =>
