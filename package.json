@@ -1,6 +1,6 @@
 {
   "name": "meshblu-core-manager-device",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -36,7 +36,6 @@
     "coffee-script": "^1.10.0",
     "lodash": "^4.13.1",
     "meshblu-core-manager-root-token": "^1.0.0",
-    "meshblu-core-manager-token": "^4.4.1",
     "moment": "^2.13.0",
     "uuid": "^2.0.1"
   }

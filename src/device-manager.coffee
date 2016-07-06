@@ -30,8 +30,7 @@ class DeviceManager
       return callback error if error?
       async.series [
         async.apply @_updateDatastore, {uuid}, data
-        async.apply @_updateUpdatedAt, {uuid}
-        async.apply @_updateHash, {uuid}, {uuid}
+        async.apply @_updateMetadata, {uuid}
       ], callback
 
   search: ({uuid, query, projection}, callback) =>
@@ -63,8 +62,9 @@ class DeviceManager
     requiredProperties = { uuid }
     newDevice = _.extend { online: false }, properties, requiredProperties
     newDevice.meshblu ?= {}
-    newDevice.meshblu.createdAt = new Date()
-    newDevice.meshblu.hash = @_createHash { uuid }
+    createdAt = new Date()
+    newDevice.meshblu.createdAt = createdAt
+    newDevice.meshblu.hash = @_createHash { uuid, createdAt }
     callback null, newDevice
 
   _getSearchWhitelistQuery: ({uuid,query}) =>
@@ -100,10 +100,12 @@ class DeviceManager
   _escapeProjection: (projection) =>
     return MongoKey.escapeObj projection
 
-  _createHash: ({ uuid }) =>
+  _createHash: ({ uuid, updatedAt, createdAt }) =>
+    date = updatedAt.toString() if updatedAt?
+    date = createdAt.toString() if createdAt?
     hasher = crypto.createHash 'sha256'
     hasher.update uuid
-    hasher.update moment().format()
+    hasher.update date
     hasher.digest 'base64'
 
   _mergeQueryWithWhitelistQuery: (query, whitelistQuery) =>
@@ -120,11 +122,15 @@ class DeviceManager
     updateObj = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
     @datastore.update query, updateObj, callback
 
-  _updateUpdatedAt: (query, callback) =>
-    @datastore.update query, $set: {'meshblu.updatedAt': moment().format()}, callback
-
-  _updateHash: (query, {uuid}, callback) =>
-    hash = @_createHash {uuid}
-    @datastore.update query, $set: {'meshblu.hash': hash}, callback
+  _updateMetadata: ({uuid}, callback) =>
+    updatedAt = new Date()
+    hash = @_createHash { uuid, updatedAt }
+    updateObj = {
+      $set: {
+        'meshblu.hash': hash,
+        'meshblu.updatedAt': updatedAt,
+      }
+    }
+    @datastore.update {uuid}, updateObj, callback
 
 module.exports = DeviceManager
