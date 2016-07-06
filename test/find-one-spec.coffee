@@ -1,7 +1,5 @@
 mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
-Cache         = require 'meshblu-core-cache'
-redis         = require 'fakeredis'
 MongoKey      = require '../src/mongo-key'
 UUID          = require 'uuid'
 DeviceManager = require '..'
@@ -15,11 +13,9 @@ describe 'Find Device', ->
 
     database.devices.remove done
 
-    @cache = new Cache client: redis.createClient UUID.v1()
-
   beforeEach ->
     @uuidAliasResolver = resolve: (uuid, callback) => callback(null, uuid)
-    @sut = new DeviceManager {@datastore, @cache, @uuidAliasResolver}
+    @sut = new DeviceManager {@datastore, @uuidAliasResolver}
 
   describe 'when called with a subscriberUuid and has devices-test', ->
     beforeEach (done) ->

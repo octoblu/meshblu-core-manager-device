@@ -1,10 +1,7 @@
 _             = require 'lodash'
 mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
-Cache         = require 'meshblu-core-cache'
-redis         = require 'fakeredis'
 MongoKey      = require '../src/mongo-key'
-uuid          = require 'uuid'
 DeviceManager = require '..'
 
 describe 'Search Devices', ->
@@ -16,11 +13,9 @@ describe 'Search Devices', ->
 
     database.devices.remove done
 
-    @cache = new Cache client: redis.createClient uuid.v1()
-
   beforeEach ->
     @uuidAliasResolver = resolve: (uuid, callback) => callback(null, uuid)
-    @sut = new DeviceManager {@datastore, @cache, @uuidAliasResolver}
+    @sut = new DeviceManager {@datastore, @uuidAliasResolver}
 
   describe 'when called without a uuid', ->
     beforeEach (done) ->

@@ -4,40 +4,34 @@ crypto           = require 'crypto'
 moment           = require 'moment'
 UUID             = require 'uuid'
 MongoKey         = require './mongo-key'
-RootTokenManager = require './root-token-manager'
+RootTokenManager = require 'meshblu-core-manager-root-token'
 
 class DeviceManager
-  constructor: ({@datastore,@uuidAliasResolver,@cache}) ->
-    @rootTokenManager = new RootTokenManager
+  constructor: ({ @datastore,@uuidAliasResolver }) ->
+    @rootTokenManager = new RootTokenManager { @datastore, @uuidAliasResolver }
 
   create: (properties={}, callback) =>
-    token = @rootTokenManager.generate()
-    @_getNewDevice properties, token, (error, device) =>
+    @_getNewDevice properties, (error, device) =>
       return callback error if error?
       @datastore.insert device, (error) =>
         return callback error if error?
-        @_storeRootTokenInCache device, (error) =>
-          return callback error if error?
+        { uuid } = device
+        @rootTokenManager.generateAndStoreToken { uuid }, (error, token) =>
           device.token = token
           callback null, device
 
   findOne: ({uuid, projection}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
-
-      query = {uuid}
-      @_findOne query, projection, callback
+      @_findOne {uuid}, projection, callback
 
   update: ({uuid, data}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
-
-      query = {uuid}
-
       async.series [
-        async.apply @_updateDatastore, query, data
-        async.apply @_updateUpdatedAt, query
-        async.apply @_updateHash, query, {uuid}
+        async.apply @_updateDatastore, {uuid}, data
+        async.apply @_updateUpdatedAt, {uuid}
+        async.apply @_updateHash, {uuid}, {uuid}
       ], callback
 
   search: ({uuid, query, projection}, callback) =>
@@ -59,45 +53,19 @@ class DeviceManager
       return callback error if error?
       @datastore.remove {uuid}, callback
 
-  removeDeviceFromCache: ({uuid}, callback) =>
-    @cache.del uuid, callback
-
-  resetRootToken: ({uuid}, callback) =>
-    return callback new Error 'Missing uuid' unless uuid?
-    @uuidAliasResolver.resolve uuid, (error, uuid) =>
-      return callback error if error?
-
-      projection =
-        uuid: true
-        token: true
-      @_findOne {uuid}, projection, (error, device) =>
-        @_removeRootTokenInCache {uuid, token: device.token}, (error) =>
-          return callback error if error?
-          token = @rootTokenManager.generate()
-          @update {uuid, data: {$set: {token}}}, (error) =>
-            return callback error if error?
-            @_storeRootTokenInCache {uuid, token}, (error) =>
-              return callback error if error?
-              callback null, {uuid, token}
-
   _findOne: (query, projection, callback) =>
     @datastore.findOne query, @_escapeProjection(projection), (error, device) =>
       return callback error if error?
       callback null, MongoKey.unescapeObj device
 
-  _getNewDevice: (properties={}, token, callback) =>
-    @rootTokenManager.hash token, (error, hashedToken) =>
-      return callback error if error?
-      uuid = UUID.v4()
-      requiredProperties =
-        uuid: uuid
-        token: hashedToken
-
-      newDevice = _.extend {online: false}, properties, requiredProperties
-      newDevice.meshblu ?= {}
-      newDevice.meshblu.createdAt = moment().format()
-      newDevice.meshblu.hash = @_createHash {uuid}
-      callback null, newDevice
+  _getNewDevice: (properties={}, callback) =>
+    uuid = UUID.v4()
+    requiredProperties = { uuid }
+    newDevice = _.extend { online: false }, properties, requiredProperties
+    newDevice.meshblu ?= {}
+    newDevice.meshblu.createdAt = new Date()
+    newDevice.meshblu.hash = @_createHash { uuid }
+    callback null, newDevice
 
   _getSearchWhitelistQuery: ({uuid,query}) =>
     whitelistCheck =
@@ -158,11 +126,5 @@ class DeviceManager
   _updateHash: (query, {uuid}, callback) =>
     hash = @_createHash {uuid}
     @datastore.update query, $set: {'meshblu.hash': hash}, callback
-
-  _removeRootTokenInCache: ({token, uuid}, callback) =>
-    @cache.del "#{uuid}:#{token}", callback
-
-  _storeRootTokenInCache: ({token, uuid}, callback) =>
-    @cache.set "#{uuid}:#{token}", '', callback
 
 module.exports = DeviceManager

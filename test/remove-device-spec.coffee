@@ -1,8 +1,5 @@
 mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
-Cache         = require 'meshblu-core-cache'
-redis         = require 'fakeredis'
-uuid          = require 'uuid'
 DeviceManager = require '..'
 
 describe 'Remove Device', ->
@@ -14,11 +11,9 @@ describe 'Remove Device', ->
 
     database.devices.remove done
 
-    @cache = new Cache client: redis.createClient uuid.v1()
-
   beforeEach ->
     @uuidAliasResolver = resolve: (uuid, callback) => callback(null, uuid)
-    @sut = new DeviceManager {@datastore, @cache, @uuidAliasResolver}
+    @sut = new DeviceManager {@datastore, @uuidAliasResolver}
 
   describe 'when the device exists', ->
     beforeEach (done) ->

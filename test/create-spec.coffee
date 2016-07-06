@@ -3,9 +3,6 @@
 
 mongojs       = require 'mongojs'
 Datastore     = require 'meshblu-core-datastore'
-Cache         = require 'meshblu-core-cache'
-redis         = require 'fakeredis'
-uuid          = require 'uuid'
 DeviceManager = require '..'
 
 describe 'Create Device', ->
@@ -17,11 +14,9 @@ describe 'Create Device', ->
 
     database.devices.remove done
 
-    @cache = new Cache client: redis.createClient uuid.v1()
-
   beforeEach ->
     @uuidAliasResolver = resolve: (uuid, callback) => callback(null, uuid)
-    @sut = new DeviceManager {@datastore, @cache, @uuidAliasResolver}
+    @sut = new DeviceManager {@datastore, @uuidAliasResolver}
 
   describe 'when called', ->
     beforeEach (done) ->
@@ -42,14 +37,6 @@ describe 'Create Device', ->
         expect(device.meshblu.hash).to.exist
         done()
 
-    it 'should create the token in the cache', (done) ->
-      @datastore.findOne {uuid: @device.uuid}, (error, device) =>
-        return done error if error?
-        @cache.exists "#{device.uuid}:#{device.token}", (error, result) =>
-          return done error if error?
-          expect(result).to.be.true
-          done()
-
   describe 'when called with a meshblu key', ->
     beforeEach (done) ->
       @sut.create {type:'not-wet', meshblu: {something: true}}, (error, @device) => done error
@@ -59,7 +46,7 @@ describe 'Create Device', ->
       expect(@device.token).to.exist
 
     it 'should have a device and all of the base properties', (done) ->
-      @datastore.findOne {uuid: @device.uuid}, (error, device) =>
+      @datastore.findOne { uuid: @device.uuid }, (error, device) =>
         return done error if error?
         expect(device.type).to.equal 'not-wet'
         expect(device.online).to.be.false
@@ -70,17 +57,9 @@ describe 'Create Device', ->
         expect(device.meshblu.hash).to.exist
         done()
 
-    it 'should create the token in the cache', (done) ->
-      @datastore.findOne {uuid: @device.uuid}, (error, device) =>
-        return done error if error?
-        @cache.exists "#{device.uuid}:#{device.token}", (error, result) =>
-          return done error if error?
-          expect(result).to.be.true
-          done()
-
   describe 'when called with online true', ->
     beforeEach (done) ->
-      @sut.create {online: true}, (error, @device) => done error
+      @sut.create { online: true }, (error, @device) => done error
 
     it 'should return you a device with the uuid and token', ->
       expect(@device.uuid).to.exist
