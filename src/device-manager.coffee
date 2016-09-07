@@ -46,6 +46,12 @@ class DeviceManager
       return callback error if error?
       callback null, _.map devices, MongoKey.unescapeObj
 
+  recycle: ({uuid}, callback) =>
+    return callback new Error('Missing uuid') unless uuid?
+    @uuidAliasResolver.resolve uuid, (error, uuid) =>
+      return callback error if error?
+      @datastore.recycle {uuid}, callback
+
   remove: ({uuid}, callback) =>
     return callback new Error('Missing uuid') unless uuid?
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
