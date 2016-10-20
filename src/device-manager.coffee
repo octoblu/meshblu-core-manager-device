@@ -25,13 +25,13 @@ class DeviceManager
       return callback error if error?
       @_findOne {uuid}, projection, callback
 
-  update: ({uuid, data}, callback) =>
+  update: ({uuid, data, updatedBy}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
       { query, data } = @_extractQuery { uuid, data }
       async.series [
         async.apply @_updateDatastore, query, data
-        async.apply @_updateMetadata, { uuid }
+        async.apply @_updateMetadata, { uuid, updatedBy }
       ], callback
 
   _extractQuery: ({ uuid, data }) =>
@@ -139,13 +139,14 @@ class DeviceManager
     updateObj = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
     @datastore.update query, updateObj, callback
 
-  _updateMetadata: ({uuid}, callback) =>
+  _updateMetadata: ({uuid, updatedBy}, callback) =>
     updatedAt = new Date()
     hash = @_createHash { uuid, updatedAt }
     updateObj = {
       $set: {
-        'meshblu.hash': hash,
-        'meshblu.updatedAt': updatedAt,
+        'meshblu.hash': hash
+        'meshblu.updatedAt': updatedAt
+        'meshblu.updatedBy': updatedBy
       }
     }
     @datastore.update {uuid}, updateObj, callback

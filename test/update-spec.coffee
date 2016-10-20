@@ -27,13 +27,14 @@ describe 'Update Device', ->
         update =
           $set:
             foo: 'bar'
-        @sut.update {uuid:'wet-sock',data:update}, (error) => done error
+        @sut.update {uuid:'wet-sock',updatedBy:'foo',data:update}, (error) => done error
 
       it 'should have a device', (done) ->
         @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
           return done error if error?
           expect(device).to.deep.contain uuid: 'wet-sock', foo: 'bar'
           expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.updatedBy).to.exist
           expect(device.meshblu.hash).to.exist
           done()
 
