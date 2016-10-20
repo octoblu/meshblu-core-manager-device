@@ -28,10 +28,17 @@ class DeviceManager
   update: ({uuid, data}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
+      { query, data } = @_extractQuery { uuid, data }
       async.series [
-        async.apply @_updateDatastore, {uuid}, data
-        async.apply @_updateMetadata, {uuid}
+        async.apply @_updateDatastore, query, data
+        async.apply @_updateMetadata, { uuid }
       ], callback
+
+  _extractQuery: ({ uuid, data }) =>
+    query = data['$query'] ? {}
+    data = _.omit data, '$query'
+    query.uuid = uuid
+    return { query, data }
 
   search: ({uuid, query, projection}, callback) =>
     return callback new Error 'Missing uuid' unless uuid?
@@ -125,6 +132,10 @@ class DeviceManager
 
   _updateDatastore: (query, data, callback) =>
     keysWeActuallyWant = ['$each']
+    _.each data, (datum) =>
+      _.each datum, (_, key) =>
+        keysWeActuallyWant.push key if /\.\$\./.test key
+
     updateObj = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
     @datastore.update query, updateObj, callback
 
