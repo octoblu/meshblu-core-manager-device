@@ -20,6 +20,17 @@ class DeviceManager
           device.token = token
           callback null, device
 
+  findAndUpdate: ({uuid, projection, data, updatedBy}, callback) =>
+    @uuidAliasResolver.resolve uuid, (error, uuid) =>
+      return callback error if error?
+      { query, data } = @_extractQuery { uuid, data }
+      async.series [
+        async.apply @_findAndUpdateDatastore, { query, data, projection }
+        async.apply @_updateMetadata, { uuid, updatedBy }
+      ], (error, results) =>
+        return callback error if error?
+        return callback null, results[0]
+
   findOne: ({uuid, projection}, callback) =>
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
@@ -129,6 +140,15 @@ class DeviceManager
     saferQuery = _.omit query, '$or'
 
     _.extend saferQuery, whitelistQuery
+
+  _findAndUpdateDatastore: ({ query, data, projection }, callback) =>
+    keysWeActuallyWant = ['$each']
+    _.each data, (datum) =>
+      _.each datum, (_, key) =>
+        keysWeActuallyWant.push key if /\.\$\./.test key
+
+    update = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
+    @datastore.findAndUpdate { query, update, projection }, callback
 
   _updateDatastore: (query, data, callback) =>
     keysWeActuallyWant = ['$each']
