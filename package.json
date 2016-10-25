@@ -1,6 +1,6 @@
 {
   "name": "meshblu-core-manager-device",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "env-test": "^1.0.0",
     "fakeredis": "^1.0.2",
     "meshblu-core-cache": "^1.5.0",
-    "meshblu-core-datastore": "^4.8.0",
+    "meshblu-core-datastore": "^4.8.4",
     "mocha": "^2.5.3",
     "mocha-multi": "^0.9.1",
     "mocha-osx-reporter": "^0.1.2",
