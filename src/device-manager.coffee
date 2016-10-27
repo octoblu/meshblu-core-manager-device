@@ -9,6 +9,24 @@ RootTokenManager = require 'meshblu-core-manager-root-token'
 class DeviceManager
   constructor: ({ @datastore,@uuidAliasResolver }) ->
     @rootTokenManager = new RootTokenManager { @datastore, @uuidAliasResolver }
+    @keysWeActuallyWant = [
+      '$each'
+      '$eq'
+      '$gt'
+      '$gte'
+      '$lt'
+      '$lte'
+      '$ne'
+      '$in'
+      '$nin'
+      '$exists'
+      '$all'
+      '$elemMatch'
+      '$or'
+      '$and'
+      '$not'
+      '$nor'
+    ]
 
   create: (properties={}, callback) =>
     @_getNewDevice properties, (error, device) =>
@@ -142,21 +160,19 @@ class DeviceManager
     _.extend saferQuery, whitelistQuery
 
   _findAndUpdateDatastore: ({ query, data, projection }, callback) =>
-    keysWeActuallyWant = ['$each']
     _.each data, (datum) =>
       _.each datum, (_, key) =>
-        keysWeActuallyWant.push key if /\.\$\./.test key
+        @keysWeActuallyWant.push key if /\.\$\./.test key
 
-    update = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
+    update = _.mapValues data, (datum) => MongoKey.escapeObj datum, @keysWeActuallyWant
     @datastore.findAndUpdate { query, update, projection }, callback
 
   _updateDatastore: (query, data, callback) =>
-    keysWeActuallyWant = ['$each']
     _.each data, (datum) =>
       _.each datum, (_, key) =>
-        keysWeActuallyWant.push key if /\.\$\./.test key
+        @keysWeActuallyWant.push key if /\.\$\./.test key
 
-    updateObj = _.mapValues data, (datum) => MongoKey.escapeObj datum, keysWeActuallyWant
+    updateObj = _.mapValues data, (datum) => MongoKey.escapeObj datum, @keysWeActuallyWant
     @datastore.update query, updateObj, callback
 
   _updateMetadata: ({uuid, updatedBy}, callback) =>
