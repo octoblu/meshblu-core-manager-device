@@ -26,6 +26,7 @@ class DeviceManager
       '$and'
       '$not'
       '$nor'
+      '$slice'
     ]
 
   create: (properties={}, callback) =>
