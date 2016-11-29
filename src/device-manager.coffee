@@ -80,6 +80,7 @@ class DeviceManager
       sort:      {_id: -1}
 
     @datastore.find secureQuery, @_escapeProjection(projection), options, (error, devices) =>
+      delete error.code if error?
       return callback error if error?
       callback null, _.map devices, MongoKey.unescapeObj
 
