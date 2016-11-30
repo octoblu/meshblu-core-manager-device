@@ -162,17 +162,25 @@ describe 'Search Devices', ->
       ]
       @datastore.insert beers, done
 
-    beforeEach (done) ->
-      @sut.search {uuid: 'darth-peter', query: {type:'light-beer'}}, (error, @devices) => done error
+    describe 'when searching for light-beer', ->
+      beforeEach (done) ->
+        @sut.search {uuid: 'darth-peter', query: {type:'light-beer'}}, (error, @devices) => done error
 
-    it 'should return 2 devices', ->
-      expect(@devices.length).to.equal 2
+      it 'should return 2 devices', ->
+        expect(@devices.length).to.equal 2
 
-    it 'should return the correct devices', ->
-      expect(@devices).to.containSubset [
-        {uuid: 'coors-i-dont-know'}
-        {uuid: 'peters-secret-special-brew'}
-      ]
+      it 'should return the correct devices', ->
+        expect(@devices).to.containSubset [
+          {uuid: 'coors-i-dont-know'}
+          {uuid: 'peters-secret-special-brew'}
+        ]
+
+    describe 'when searching for myself', ->
+      beforeEach (done) ->
+        @sut.search {uuid: 'that-lucky-charms-leprechauns-brew', query: {uuid:'that-lucky-charms-leprechauns-brew'}}, (error, @devices) => done error
+
+      it 'should find myself (If only it was that easy to find yourself irl)', ->
+        expect(@devices.length).to.equal 1
 
   context 'messed up hybrid devices', ->
     context 'v2 device with an OG whitelist', ->
