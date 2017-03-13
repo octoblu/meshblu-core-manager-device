@@ -1,7 +1,6 @@
 _                = require 'lodash'
 async            = require 'async'
 crypto           = require 'crypto'
-moment           = require 'moment'
 UUID             = require 'uuid'
 MongoKey         = require './mongo-key'
 RootTokenManager = require 'meshblu-core-manager-root-token'
@@ -121,7 +120,7 @@ class DeviceManager
 
   _getOGWhitelistCheck: ({uuid}) =>
     versionCheck =
-      'meshblu.version': { $ne: '2.0.0' }
+      'meshblu.version': { $in: [null,'1.0.0'] }
 
     whitelistCheck =
       $or: [
