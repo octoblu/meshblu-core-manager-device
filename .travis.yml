@@ -1,16 +1,15 @@
 language: node_js
 node_js:
-- '5'
-env:
-- CXX=g++-4.8
+- '7'
+sudo: false
+services:
+- mongodb
 addons:
   apt:
     sources:
-    - ubuntu-toolchain-r-test
+    - mongodb-3.0-precise
     packages:
-    - g++-4.8
-services:
-- mongodb
+    - mongodb-org-server
 branches:
   only:
   - /^v[0-9]/
