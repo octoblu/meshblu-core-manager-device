@@ -19,6 +19,10 @@ describe 'Update Device', ->
     beforeEach (done) ->
       record =
         uuid: 'wet-sock'
+        hungry: 'hippo'
+        meshblu:
+          updatedAt: '1955-10-26T17:38:14Z'
+          updatedBy: '5'
 
       @datastore.insert record, done
 
@@ -33,9 +37,23 @@ describe 'Update Device', ->
         @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
           return done error if error?
           expect(device).to.deep.contain uuid: 'wet-sock', foo: 'bar'
-          expect(device.meshblu.updatedAt).to.exist
-          expect(device.meshblu.updatedBy).to.exist
+          expect(device.meshblu.updatedAt).not.to.equal '1955-10-26T17:38:14Z'
+          expect(device.meshblu.updatedBy).not.to.equal '5'
           expect(device.meshblu.hash).to.exist
+          done()
+
+    describe 'when the device is updated with the same property', ->
+      beforeEach (done) ->
+        update =
+          $set:
+            hungry: 'hippo'
+        @sut.update {uuid:'wet-sock',updatedBy:'foo',data:update}, (error) => done error
+
+      it 'should have a device', (done) ->
+        @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
+          return done error if error?
+          expect(device.meshblu.updatedAt).to.equal '1955-10-26T17:38:14Z'
+          expect(device.meshblu.updatedBy).to.equal '5'
           done()
 
     describe 'when the device is updated with a $ key at the top', ->
@@ -50,7 +68,7 @@ describe 'Update Device', ->
           return done error if error?
           expect(device.uuid).to.equal 'wet-sock'
           expect(device.$ref).to.equal 'bar'
-          expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.updatedAt).not.to.equal '1955-10-26T17:38:14Z'
           expect(device.meshblu.hash).to.exist
           done()
 
@@ -64,7 +82,7 @@ describe 'Update Device', ->
           return done error if error?
           expect(device.uuid).to.equal 'wet-sock'
           expect(device.$foo).to.be.true
-          expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.updatedAt).not.to.equal '1955-10-26T17:38:14Z'
           expect(device.meshblu.hash).to.exist
           done()
 
@@ -82,7 +100,7 @@ describe 'Update Device', ->
           return done error if error?
           expect(device.uuid).to.equal 'wet-sock'
           expect(device.hello).to.deep.equal { hello: { $ref: 'bar' } }
-          expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.updatedAt).not.to.equal '1955-10-26T17:38:14Z'
           expect(device.meshblu.hash).to.exist
           done()
 
@@ -98,7 +116,7 @@ describe 'Update Device', ->
           return done error if error?
           expect(device.uuid).to.equal 'wet-sock'
           expect(device.hello).to.deep.equal { hello: 'hi' }
-          expect(device.meshblu.updatedAt).to.exist
+          expect(device.meshblu.updatedAt).not.to.equal '1955-10-26T17:38:14Z'
           expect(device.meshblu.hash).to.exist
           done()
 

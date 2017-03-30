@@ -58,10 +58,12 @@ class DeviceManager
     @uuidAliasResolver.resolve uuid, (error, uuid) =>
       return callback error if error?
       { query, data } = @_extractQuery { uuid, data }
-      async.series [
-        async.apply @_updateDatastore, query, data
-        async.apply @_updateMetadata, { uuid, updatedBy }
-      ], callback
+      @_updateDatastore query, data, (error, response) =>
+        return callback error if error?
+        return callback() unless response.updated
+        @_updateMetadata { uuid, updatedBy}, (error) =>
+          return callback error if error?
+          return callback null, {updated: response.updated}
 
   _extractQuery: ({ uuid, data }) =>
     query = data['$query'] ? {}
