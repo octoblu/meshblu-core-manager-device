@@ -60,7 +60,7 @@ class DeviceManager
       { query, data } = @_extractQuery { uuid, data }
       @_updateDatastore query, data, (error, response) =>
         return callback error if error?
-        return callback() unless response.updated
+        return callback(null, {updated: response.updated}) unless response.updated
         @_updateMetadata { uuid, updatedBy}, (error) =>
           return callback error if error?
           return callback null, {updated: response.updated}

@@ -31,7 +31,7 @@ describe 'Update Device', ->
         update =
           $set:
             foo: 'bar'
-        @sut.update {uuid:'wet-sock',updatedBy:'foo',data:update}, (error) => done error
+        @sut.update {uuid:'wet-sock',updatedBy:'foo',data:update}, (error, @result) => done error
 
       it 'should have a device', (done) ->
         @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
@@ -42,19 +42,25 @@ describe 'Update Device', ->
           expect(device.meshblu.hash).to.exist
           done()
 
-    describe 'when the device is updated with the same property', ->
+      it 'should yield updated: true', ->
+        expect(@result.updated).to.be.true
+
+    describe 'when the device is updated with the same property (so no change)', ->
       beforeEach (done) ->
         update =
           $set:
             hungry: 'hippo'
-        @sut.update {uuid:'wet-sock',updatedBy:'foo',data:update}, (error) => done error
+        @sut.update {uuid:'wet-sock',updatedBy:'foo',data:update}, (error, @result) => done error
 
-      it 'should have a device', (done) ->
+      it 'should have a device, but leave updatedBy and updatedAt alone', (done) ->
         @sut.findOne {uuid: 'wet-sock'}, (error, device) =>
           return done error if error?
           expect(device.meshblu.updatedAt).to.equal '1955-10-26T17:38:14Z'
           expect(device.meshblu.updatedBy).to.equal '5'
           done()
+
+      it 'should yield updated: false', ->
+        expect(@result.updated).to.be.false
 
     describe 'when the device is updated with a $ key at the top', ->
       beforeEach (done) ->
