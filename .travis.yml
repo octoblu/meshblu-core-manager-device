@@ -13,8 +13,6 @@ addons:
     packages:
     - mongodb-org-server
     - g++-4.8
-services:
-- mongodb
 branches:
   only:
   - /^v[0-9]/
