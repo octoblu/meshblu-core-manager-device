@@ -1,7 +1,7 @@
 {
   "name": "meshblu-core-manager-device",
   "version": "4.2.1",
-  "description": "",
+  "description": "Meshblu Core Device Manager",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
