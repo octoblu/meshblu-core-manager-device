@@ -33,6 +33,7 @@ class DeviceManager
       return callback error if error?
       @datastore.insert device, (error) =>
         return callback error if error?
+        delete device._id
         { uuid } = device
         @rootTokenManager.generateAndStoreToken { uuid }, (error, token) =>
           device.token = token
